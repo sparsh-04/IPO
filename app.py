@@ -85,7 +85,7 @@ def iterative(data, max_cash, output_file):
         writer.writerow(['Expected Profit', 'Money Used', 'Selected Columns'])
         for result in sorted_results:
             expected_profit, money_used, selected_columns = result
-            if money_used < max_cash and money_used > 0 and money_used > max_cash - 900000:
+            if money_used < max_cash and money_used > 0:
                 writer.writerow([expected_profit, money_used, ', '.join(selected_columns)])
 
 @app.route('/', methods=['GET', 'POST'])

@@ -1,0 +1,5 @@
+flask
+pandas
+beautifulsoup4
+requests
+gunicorn

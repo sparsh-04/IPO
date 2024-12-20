@@ -72,7 +72,7 @@ def iterative(data, max_cash, output_file):
             results.append((expected_profit, money_used, selected_columns))
         else:
             for j in range(1, 4):
-                if float(data[i][j + 3]) <=1:
+                if float(data[i][j + 3]) <= 1:
                     new_expected_profit = expected_profit + float(data[i][j]) * (1 + float(data[i][0]) / 100)
                 else:
                     new_expected_profit = expected_profit + float(data[i][j]) * (1 + float(data[i][0]) / 100) / float(data[i][j + 3])
@@ -85,7 +85,7 @@ def iterative(data, max_cash, output_file):
         writer.writerow(['Expected Profit', 'Money Used', 'Selected Columns'])
         for result in sorted_results:
             expected_profit, money_used, selected_columns = result
-            if money_used < max_cash and money_used > 0:
+            if money_used < max_cash and money_used > 0 and money_used > max_cash - 200000:
                 writer.writerow([expected_profit, money_used, ', '.join(selected_columns)])
 
 @app.route('/', methods=['GET', 'POST'])
@@ -112,4 +112,4 @@ def results():
     return render_template('results.html', results=results)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=8000)

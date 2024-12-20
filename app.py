@@ -1,11 +1,12 @@
 import os
-from flask import Flask, request, redirect, url_for, render_template
+from flask import Flask, request, redirect, url_for, render_template, flash
 from werkzeug.utils import secure_filename
 import pandas as pd
 import csv
 import requests
 from bs4 import BeautifulSoup
 import logging
+from io import StringIO
 
 UPLOAD_FOLDER = '/tmp/uploads'
 DATA_FOLDER = '/tmp/data'
@@ -30,7 +31,7 @@ def scrapper(urls, output_file):
             soup = BeautifulSoup(response.content, 'html.parser')
             tables = soup.find_all('table')
             for i, table in enumerate(tables):
-                df = pd.read_html(str(table))[0]
+                df = pd.read_html(StringIO(str(table)))[0]
                 if i == 2:
                     r_lot_value = df.iloc[2].array[1]
                     r_lot_value = r_lot_value.replace("₹", "").replace(",", "")
@@ -53,7 +54,7 @@ def scrapper(urls, output_file):
                 writer = csv.writer(file)
                 writer.writerow([GMP, r_lot_value, shni * r_lot_value, bhni * r_lot_value, r_sub, s_sub, b_sub])
         else:
-            print(f"Failed to fetch the page. Status code: {response.status_code}")
+            logging.error(f"Failed to fetch the page. Status code: {response.status_code}")
 
     with open(output_file, mode='w', newline='') as file:
         writer = csv.writer(file)

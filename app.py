@@ -5,13 +5,18 @@ import pandas as pd
 import csv
 import requests
 from bs4 import BeautifulSoup
+import logging
 
-UPLOAD_FOLDER = 'uploads'
-DATA_FOLDER = 'data'
+UPLOAD_FOLDER = '/tmp/uploads'
+DATA_FOLDER = '/tmp/data'
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['DATA_FOLDER'] = DATA_FOLDER
+app.secret_key = 'supersecretkey'  # Needed for flashing messages
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 
 def scrapper(urls, output_file):
     def process_url(url):
@@ -91,25 +96,37 @@ def iterative(data, max_cash, output_file):
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
-        urls = request.form['urls'].splitlines()
-        max_cash = request.form['max_cash']
-        output_file = os.path.join(app.config['DATA_FOLDER'], 'a.csv')
-        scrapper(urls, output_file)
-        data = read_csv_to_array(output_file)
-        temp_output_file = os.path.join(app.config['DATA_FOLDER'], 'temp.csv')
-        iterative(data, float(max_cash), temp_output_file)
-        return redirect(url_for('results'))
+        try:
+            urls = request.form['urls'].splitlines()
+            max_cash = request.form['max_cash']
+            output_file = os.path.join(app.config['DATA_FOLDER'], 'a.csv')
+            scrapper(urls, output_file)
+            data = read_csv_to_array(output_file)
+            temp_output_file = os.path.join(app.config['DATA_FOLDER'], 'temp.csv')
+            iterative(data, float(max_cash), temp_output_file)
+            return redirect(url_for('results'))
+        except Exception as e:
+            logging.error(f"Error processing request: {e}")
+            flash("An error occurred while processing your request. Please try again.")
+            return redirect(url_for('index'))
     return render_template('index.html')
+
 
 @app.route('/results')
 def results():
     temp_output_file = os.path.join(app.config['DATA_FOLDER'], 'temp.csv')
     results = []
-    with open(temp_output_file, mode='r') as file:
-        reader = csv.reader(file)
-        for row in reader:
-            results.append(row)
+    try:
+        with open(temp_output_file, mode='r') as file:
+            reader = csv.reader(file)
+            for row in reader:
+                results.append(row)
+    except Exception as e:
+        logging.error(f"Error reading results: {e}")
+        flash("An error occurred while reading the results. Please try again.")
+        return redirect(url_for('index'))
     return render_template('results.html', results=results)
+
 
 if __name__ == '__main__':
     app.run()

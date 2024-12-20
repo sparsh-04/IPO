@@ -14,6 +14,11 @@ app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['DATA_FOLDER'] = DATA_FOLDER
 app.secret_key = 'supersecretkey'  # Needed for flashing messages
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
+
+if not os.path.exists(app.config['DATA_FOLDER']):
+    os.makedirs(app.config['DATA_FOLDER'])
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

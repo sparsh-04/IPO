@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backtesting IPO</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Backtesting IPO</h1>
+        <form action="/" method="post">
+            <div class="form-group">
+                <label for="urls">Enter URLs (one per line):</label>
+                <textarea name="urls" id="urls" rows="10" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="max_cash">Max Cash:</label>
+                <input type="number" name="max_cash" id="max_cash" required>
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+</body>
+</html>

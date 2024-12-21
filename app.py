@@ -92,7 +92,7 @@ def read_csv_to_array(csv_file):
             data.append(row)
     return data
 
-def iterative(data, max_cash, output_file):
+def iterative(data, max_cash, output_file, max_account):
     stack = [(1, 0, 0, 0, [])]
     column_names = ['r_lot', 'shni', 'bhni']
     results = []
@@ -101,9 +101,18 @@ def iterative(data, max_cash, output_file):
         if i == len(data):
             results.append((expected_profit, money_used, selected_columns))
         else:
+            # for _ in range(1, max_account+1):
+            # print(max_account)
             if data[i][8]=="False":
-                for j in range(1, 4):
-                    if float(data[i][j + 3]) <= 1:
+                for j in range(0, 4):
+                    if j == 0:
+                        new_expected_profit = expected_profit
+                        new_selected_columns = selected_columns + ['0']
+                        new_money_used = money_used
+                        stack.append((i + 1, j, new_expected_profit, new_money_used, new_selected_columns))
+                        continue
+
+                    elif float(data[i][j + 3]) <= 1:
                         new_expected_profit = expected_profit + float(data[i][j]) * (1 + float(data[i][0]) / 100)
                     else:
                         new_expected_profit = expected_profit + float(data[i][j]) * (1 + float(data[i][0]) / 100) / float(data[i][j + 3]) + float(data[i][j])*(1-1/float(data[i][j + 3]))
@@ -111,14 +120,20 @@ def iterative(data, max_cash, output_file):
                     new_money_used = money_used + float(data[i][j])
                     stack.append((i + 1, j, new_expected_profit, new_money_used, new_selected_columns))
             elif data[i][8]=="True":
-                for j in range(1, 8):
-                    if j==1:
-                        new_expected_profit = expected_profit + float(data[i][1]) * (1 + float(data[i][0]) / 100) / float(data[i][4]) + float(data[i][1])*(1-1/float(data[i][4]))
-                    else:
-                        new_expected_profit = expected_profit + float(data[i][1]) * j * (1 + float(data[i][0]) / 100) / float(data[i][5]) + float(data[i][1])*j*(1-1/float(data[i][5]))
-                    new_selected_columns = selected_columns + [f'{j}x']
-                    new_money_used = money_used + float(data[i][1])*j
-                    stack.append((i + 1, j, new_expected_profit, new_money_used, new_selected_columns))
+                    for j in range(0, 8):
+                        if j == 0:
+                            new_expected_profit = expected_profit
+                            new_selected_columns = selected_columns + ['0']
+                            new_money_used = money_used
+                            stack.append((i + 1, j, new_expected_profit, new_money_used, new_selected_columns))
+                            continue
+                        if j==1:
+                            new_expected_profit = expected_profit + float(data[i][1]) * (1 + float(data[i][0]) / 100) / float(data[i][4]) + float(data[i][1])*(1-1/float(data[i][4]))
+                        else:
+                            new_expected_profit = expected_profit + float(data[i][1]) * j * (1 + float(data[i][0]) / 100) / float(data[i][5]) + float(data[i][1])*j*(1-1/float(data[i][5]))
+                        new_selected_columns = selected_columns + [f'{j}x']
+                        new_money_used = money_used + float(data[i][1])*j
+                        stack.append((i + 1, j, new_expected_profit, new_money_used, new_selected_columns))
     sorted_results = sorted(results, key=lambda x: x[0], reverse=True)
     with open(output_file, mode='w', newline='') as file:
         writer = csv.writer(file)
@@ -138,15 +153,26 @@ def index():
     if request.method == 'POST':
         try:
             urls = request.form['urls'].splitlines()
+            file = request.files.get('file')
+            if file and file.filename != '':
+                file_urls = file.read().decode('utf-8').splitlines()
+                urls.extend(file_urls)
             max_cash = request.form['max_cash']
+            max_account = request.form['max_account']
             output_file = os.path.join(app.config['DATA_FOLDER'], 'a.csv')
             scrapper(urls, output_file)
             with open(output_file, mode='r') as file:
                 contents = file.read()
                 print(contents)
             data = read_csv_to_array(output_file)
+            header = data[0]
+            rows = data[1:]
+            for _ in range(int(max_account)-1):
+                data.extend(rows)
+            print(data)
             temp_output_file = os.path.join(app.config['DATA_FOLDER'], 'temp.csv')
-            iterative(data, float(max_cash), temp_output_file)
+            # for _ in range(0, int(max_account)):
+            iterative(data, float(max_cash), temp_output_file, int(max_account))
             return redirect(url_for('results'))
         except Exception as e:
             logging.error(f"Error processing request: {e}")

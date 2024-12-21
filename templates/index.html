@@ -3,20 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> IPO Applying Strategy</title>
+    <title>IPO Applying Strategy</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+        function validateForm() {
+            var urls = document.getElementById('urls').value.trim();
+            var file = document.getElementById('file').value.trim();
+            if (urls === '' && file === '') {
+                alert('Please enter URLs or upload a file containing URLs.');
+                return false;
+            }
+            return true;
+        }
+    </script>
 </head>
 <body>
     <div class="container">
         <h1>IPO Applying Strategy for MAX Gains</h1>
-        <form action="/" method="post">
+        <form action="/" method="post" enctype="multipart/form-data" onsubmit="return validateForm()">
             <div class="form-group">
                 <label for="urls">Enter URLs (one per line):(eg-https://www.investorgain.com/ipo/concord-enviro-systems-ipo/1155/)</label>
-                <textarea name="urls" id="urls" rows="10" required></textarea>
+                <textarea name="urls" id="urls" rows="10"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="file">Or upload a file containing URLs:</label>
+                <input type="file" name="file" id="file" accept=".txt">
             </div>
             <div class="form-group">
                 <label for="max_cash">Max Cash:</label>
                 <input type="number" name="max_cash" id="max_cash" required>
+            </div>
+            <div class="form-group">
+                <label for="max_account">Total Accounts you have:</label>
+                <input type="number" name="max_account" id="max_account" required>
             </div>
             <button type="submit">Submit</button>
         </form>
